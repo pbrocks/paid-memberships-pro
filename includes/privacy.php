@@ -86,6 +86,7 @@ function pmpro_personal_data_exporter( $email_address, $page = 1 ) {
 	if ( ! empty( $user ) ) {
 		// Add data stored in user meta.
 		$personal_user_meta_fields = pmpro_get_personal_user_meta_fields();
+		// d( $personal_user_meta_fields );
 		$sqlQuery = "SELECT meta_key, meta_value
 					 FROM $wpdb->usermeta
 					 WHERE user_id = '" . intval( $user->ID ) . "'
