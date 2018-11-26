@@ -605,22 +605,14 @@ function pmpro_next_payment( $user_id = null, $order_status = 'success', $format
 			$lastdate = date_i18n( 'Y-m-d', $order->timestamp );
 
 			// next payment date
-			$nextdate = $wpdb->get_var( 
-				$wpdb->prepare( "
-					SELECT UNIX_TIMESTAMP( %$1s + 
-					INTERVAL  %d   %$2s  )
-					"
-				),
-				$lastdate,
-				$level->cycle_number,
-				$level->cycle_period
-			);
+			$nextdate = date_i18n( 'Y-m-d', ( strtotime( '+' . $level->cycle_number . ' ' . $level->cycle_period, $order->timestamp ) ) );
 
 			$r = $nextdate;
 		} else {
 			// no order or level found, or level was not recurring
 			$r = false;
 		}
+		return $r;
 	}
 
 	/**
