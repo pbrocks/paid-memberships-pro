@@ -27,6 +27,9 @@ define( 'PMPRO_BASE_FILE', __FILE__ );
 define( 'PMPRO_DIR', dirname( __FILE__ ) );
 
 require_once( PMPRO_DIR . '/classes/class-deny-network-activation.php' );   // stop PMPro from being network activated
+
+require_once( PMPRO_DIR . '/classes/class-pmpro-members-list-table.php' );
+
 require_once( PMPRO_DIR . '/includes/sessions.php' );               // start/close PHP seession vars
 
 require_once( PMPRO_DIR . '/includes/localization.php' );           // localization functions

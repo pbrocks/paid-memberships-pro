@@ -51,7 +51,7 @@
 		<input id="post-search-input" type="text" value="<?php echo esc_attr($s);?>" name="s"/>
 		<input class="button" type="submit" value="<?php _e('Search Members', 'paid-memberships-pro' );?>"/>
 	</p>
-	<?php
+	<?php /*
 		//some vars for the search
 		if(isset($_REQUEST['pn']))
 			$pn = intval($_REQUEST['pn']);
@@ -69,7 +69,7 @@
 			 * @since 1.8.4.5
 			 *
 			 * @param int $limit The number of items to show per page.
-			 */
+			 * /
 			$limit = apply_filters('pmpro_memberslist_per_page', 15);
 		}
 
@@ -274,8 +274,129 @@
 
 	<?php
 	echo pmpro_getPaginationString($pn, $totalrows, $limit, 1, add_query_arg(array("s" => urlencode($s), "l" => $l, "limit" => $limit)));
+	*/
 	?>
+	<div style="margin-top:5%;height: 44vh;border: 1rem solid salmon;">
+		<h2 style="color:salmon;">admin_footer</h2>
+		<?php
 
-<?php
-	require_once(dirname(__FILE__) . "/admin_footer.php");
-?>
+add_action( 'admin_enqueue_scripts', 'pmpro_add_admin_scripts', 11 );
+add_action( 'admin_menu', 'pmpro_add_plugin_admin_menu', 11 );
+/**
+ * Callback for the user sub-menu in define_admin_hooks() for class Init.
+ *
+ * @since    2.0.0
+ */
+function pmpro_add_plugin_admin_menu() {
+	global $user_list_table;
+	$page_hook = add_dashboard_page(
+		__( 'PMPro Members List', 'paid-memberships-pro' ), // page title
+		__( 'PMPro Members List', 'paid-memberships-pro' ), // menu title
+		'manage_options', // capability
+		'pmpro-members-list-table', // menu_slug,
+		'pmpro_load_user_list_table'
+	);
+
+	/**
+	 * The $page_hook_suffix can be combined with the load-($page_hook) action hook
+	 * https://codex.wordpress.org/Plugin_API/Action_Reference/load-(page)
+	 *
+	 * The callback below will be called when the respective page is loaded
+	 */
+	add_action( 'load-' . $page_hook, 'pmpro_list_table_screen_options' );
+	add_action( 'load-' . $page_hook, 'pmpro_list_table_help_tabs' );
+
+}
+
+/**
+ * Screen options for the List Table
+ *
+ * Callback for the load-($page_hook_suffix)
+ * Called when the plugin page is loaded
+ *
+ * @since    2.0.0
+ */
+function pmpro_list_table_screen_options() {
+	global $user_list_table;
+	$arguments = array(
+		'label'   => __( 'Members Per Page', 'paid-memberships-pro' ),
+		'default' => 13,
+		'option'  => 'users_per_page',
+	);
+
+	add_screen_option( 'per_page', $arguments );
+
+	// instantiate the User List Table
+	$user_list_table = new PMPro_Members_List_Table();
+}
+
+/**
+ * Display the User List Table
+ *
+ * Callback for the add_users_page() in the pmpro_add_plugin_admin_menu() method of this class.
+ *
+ * @since   2.0.0
+ */
+function pmpro_load_user_list_table() {
+	global $user_list_table;
+	// query, filter, and sort the data
+	$user_list_table->prepare_items();
+
+	// render the List Table
+	?>
+		<h2><?php _e( 'PMPro Members List Table', 'paid-memberships-pro' ); ?></h2>
+			<div id="member-list-table-demo">			
+				<div id="pbrx-post-body">		
+					<form id="member-list-form" method="get">
+						<input type="hidden" name="page" value="<?php echo $_REQUEST['page']; ?>" />
+						<?php
+							$user_list_table->search_box( __( 'Find Member', 'paid-memberships-pro' ), 'pbrx-user-find' );
+							$user_list_table->display();
+						?>
+				</form>
+			</div>			
+		</div>
+	<?php
+}
+
+function pmpro_list_table_help_tabs() {
+	$screen = get_current_screen();
+	$screen->add_help_tab(
+		array(
+			'id'      => 'sortable_overview',
+			'title'   => __( 'Sortable Overview', 'paid-memberships-pro' ),
+			'content' => '<p>' . __( 'Overview of your plugin or theme here', 'paid-memberships-pro' ) . '</p>',
+		)
+	);
+
+	$screen->add_help_tab(
+		array(
+			'id'      => 'sortable_faq',
+			'title'   => __( 'Sortable FAQ', 'paid-memberships-pro' ),
+			'content' => '<p>' . __( 'Frequently asked questions and their answers here', 'paid-memberships-pro' ) . '</p>',
+		)
+	);
+
+	$screen->add_help_tab(
+		array(
+			'id'      => 'sortable_support',
+			'title'   => __( 'Sortable Support', 'paid-memberships-pro' ),
+			'content' => '<p>' . __( 'For support, visit the <a href="https://www.paidmembershipspro.com/forums/forum/members-forum/" target="_blank">Support Forums</a>', 'paid-memberships-pro' ) . '</p>',
+		)
+	);
+
+	$screen->set_help_sidebar( '<p>' . __( 'This is the content you will be adding to the sidebar.', 'paid-memberships-pro' ) . '</p>' );
+}
+
+function pmpro_add_admin_scripts() {
+	wp_register_script( 'pmpro-list-table', plugins_url( '/js/selected-level.js', __FILE__ ), array( 'jquery' ), time() );
+	wp_enqueue_script( 'pmpro-list-table' );
+	wp_register_style( 'pmpro-list-table', plugins_url( '/css/list-table.css', __FILE__ ), time() );
+	wp_enqueue_style( 'pmpro-list-table' );
+}
+
+
+
+		?>
+	</div>
+
