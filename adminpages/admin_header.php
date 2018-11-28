@@ -188,6 +188,10 @@
 			<a href="<?php echo admin_url('admin.php?page=pmpro-pagesettings');?>" class="nav-tab<?php if($view == 'pmpro-pagesettings') { ?> nav-tab-active<?php } ?>"><?php _e('Pages', 'paid-memberships-pro' );?></a>
 		<?php } ?>
 
+		<?php if(current_user_can('pmpro_memberslistable')) { ?>
+			<a href="<?php echo admin_url('admin.php?page=pmpro-memberslistta');?>" class="nav-tab<?php if($view == 'pmpro-memberslistta') { ?> nav-tab-active<?php } ?>"><?php _e('Pages', 'paid-memberships-pro' );?></a>
+		<?php } ?>
+
 		<?php if(current_user_can('pmpro_paymentsettings')) { ?>
 			<a href="<?php echo admin_url('admin.php?page=pmpro-paymentsettings');?>" class="nav-tab<?php if($view == 'pmpro-paymentsettings') { ?> nav-tab-active<?php } ?>"><?php _e('Payment Gateway &amp; SSL', 'paid-memberships-pro' );?></a>
 		<?php } ?>

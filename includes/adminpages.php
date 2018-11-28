@@ -13,6 +13,7 @@ function pmpro_getPMProCaps()
 		'pmpro_advancedsettings',
 		'pmpro_addons',
 		'pmpro_memberslist',
+		'pmpro_memberslisttable',
 		'pmpro_reports',
 		'pmpro_orders',
 		'pmpro_discountcodes',
@@ -52,6 +53,7 @@ function pmpro_add_pages()
 	add_submenu_page('pmpro-membershiplevels', __('Advanced Settings', 'paid-memberships-pro' ), __('Advanced Settings', 'paid-memberships-pro' ), 'pmpro_advancedsettings', 'pmpro-advancedsettings', 'pmpro_advancedsettings');
 	add_submenu_page('pmpro-membershiplevels', __('Add Ons', 'paid-memberships-pro' ), __('Add Ons', 'paid-memberships-pro' ), 'pmpro_addons', 'pmpro-addons', 'pmpro_addons');
 	add_submenu_page('pmpro-membershiplevels', __('Members List', 'paid-memberships-pro' ), __('Members List', 'paid-memberships-pro' ), 'pmpro_memberslist', 'pmpro-memberslist', 'pmpro_memberslist');
+	add_submenu_page( 'pmpro-membershiplevels', __( 'List Table', 'paid-memberships-pro' ), __( 'List Table', 'paid-memberships-pro' ), 'pmpro_memberslist', 'pmpro-memberslisttable', 'pmpro_memberslisttable', 22 );
 	add_submenu_page('pmpro-membershiplevels', __('Reports', 'paid-memberships-pro' ), __('Reports', 'paid-memberships-pro' ), 'pmpro_reports', 'pmpro-reports', 'pmpro_reports');
 	add_submenu_page('pmpro-membershiplevels', __('Orders', 'paid-memberships-pro' ), __('Orders', 'paid-memberships-pro' ), 'pmpro_orders', 'pmpro-orders', 'pmpro_orders');
 	add_submenu_page('pmpro-membershiplevels', __('Discount Codes', 'paid-memberships-pro' ), __('Discount Codes', 'paid-memberships-pro' ), 'pmpro_discountcodes', 'pmpro-discountcodes', 'pmpro_discountcodes');
@@ -158,6 +160,13 @@ function pmpro_admin_bar_menu() {
 		'title' => __( 'Members List', 'paid-memberships-pro' ),
 		'href' => get_admin_url(NULL, '/admin.php?page=pmpro-memberslist') ) );
 	
+	if(current_user_can('pmpro_memberslist'))	
+		$wp_admin_bar->add_menu( array(
+		'id' => 'pmpro-members-list-table',
+		'parent' => 'paid-memberships-pro',
+		'title' => __( 'List Table', 'paid-memberships-pro' ),
+		'href' => get_admin_url(NULL, '/admin.php?page=pmpro-memberslisttable') ) );
+	
 	if(current_user_can('pmpro_reports'))	
 		$wp_admin_bar->add_menu( array(
 		'id' => 'pmpro-reports',
@@ -192,6 +201,10 @@ function pmpro_reports()
 function pmpro_memberslist()
 {
 	require_once(PMPRO_DIR . "/adminpages/memberslist.php");
+}
+
+function pmpro_memberslisttable() {
+	require_once PMPRO_DIR . '/adminpages/memberslisttable.php';
 }
 
 function pmpro_discountcodes()
