@@ -12,17 +12,6 @@ function pmpro_init()
 
 	if(is_admin())
 	{
-		wp_register_script( 'pmpro_admin', plugins_url( 'js/paid-memberships-pro.js', dirname(__FILE__) ), array( 'jquery' ) );
-		$all_levels = pmpro_getAllLevels( true, true );
-		$all_level_values_and_labels = array();
-		foreach( $all_levels as $level ) {
-			$all_level_values_and_labels[] = array( 'value' => $level->id, 'label' => $level->name );
-		}
-		wp_localize_script( 'pmpro_admin', 'pmpro', array(
-			'all_levels' => $all_levels,
-			'all_level_values_and_labels' => $all_level_values_and_labels
-		));
-		wp_enqueue_script( 'pmpro_admin' );
 
 		$admin_css_rtl = false;
 		if(file_exists(get_stylesheet_directory() . "/paid-memberships-pro/css/admin.css")) {
@@ -122,6 +111,28 @@ function pmpro_init()
 }
 add_action("init", "pmpro_init");
 
+
+add_action( 'admin_enqueue_scripts', 'pmpro_enqueue_admin_scripts' );
+/**
+ * [pmpro_enqueue_admin_scripts] 
+ * 
+ * @return void
+ */
+function pmpro_enqueue_admin_scripts() {
+	$all_levels = pmpro_getAllLevels( true, true );
+	$all_level_values_and_labels = array();
+	foreach( $all_levels as $level ) {
+		$all_level_values_and_labels[] = array( 'value' => $level->id, 'label' => $level->name );
+	}
+
+	wp_register_script( 'pmpro_admin', plugins_url( 'js/paid-memberships-pro.js', dirname( __FILE__ ) ), array( 'jquery' ) );
+	wp_localize_script( 'pmpro_admin', 'pmpro', array(
+		'all_levels' => $all_levels,
+		'all_level_values_and_labels' => $all_level_values_and_labels,
+		'pmpro_admin_nonce' => wp_create_nonce( 'pmpro-admin-nonce'),
+	) );
+	wp_enqueue_script( 'pmpro_admin' );
+}
 //this code runs after $post is set, but before template output
 function pmpro_wp()
 {
