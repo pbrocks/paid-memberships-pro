@@ -2,6 +2,39 @@
 /*
 	Code that runs on the init, set_current_user, or wp hooks to set up PMPro
 */
+
+add_action( 'admin_enqueue_scripts', 'pmpro_members_filter_scripts', 11 );
+function pmpro_members_filter_scripts() {
+	$all_levels = pmpro_getAllLevels( true, true );
+	$all_level_values_and_labels = array();
+	foreach( $all_levels as $level ) {
+		$all_level_values_and_labels[] = array( 'value' => $level->id, 'label' => $level->name );
+	}
+	wp_register_script( 'pmpro-members-filter', plugins_url( 'js/filter-levels.js', dirname(__FILE__) ), array( 'jquery' ) );
+	wp_localize_script( 'pmpro-members-filter', 'pmpro_filter_object', 
+		array(
+			// 'all_levels' => $all_levels,
+			// 'all_level_values_and_labels' => $all_level_values_and_labels,
+			'pmpro_filter_page' => 'pmpro-memberslisttable',
+			'pmpro_filter_ajaxurl' => admin_url( 'admin-ajax.php' ),
+			'pmpro_filter_nonce' => wp_create_nonce( 'pmpro-filter-nonce' ),
+		)
+	);
+	wp_enqueue_script( 'pmpro-members-filter' );
+}
+
+
+add_action( 'wp_ajax_filter_levels_request', 'pmpro_members_filter_function' );
+function pmpro_members_filter_function() {
+	$values = $_GET;
+	// $values = $_POST;
+	// $pmp_member_list_table = new PMPro_Members_List_Table();
+	echo '<pre>';
+	print_r( $values );
+	echo '</pre>';
+	exit();
+}
+
 //init code
 function pmpro_init()
 {

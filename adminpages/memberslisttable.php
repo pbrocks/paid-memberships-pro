@@ -432,8 +432,8 @@ class PMPro_Members_List_Table extends WP_List_Table {
 
 	public function get_levels_dropdown() {
 		$existing_levels = $this->get_levels_object();
-		$pmpro_levels_dropdown = '<form action="" method="get">';
-		$pmpro_levels_dropdown .= '<select name="' . preg_replace( '/_+/', '-', __FUNCTION__ ) . '" id="' . preg_replace( '/_+/', '-', __FUNCTION__ ) . '">';
+		$pmpro_levels_dropdown = '<form name="' . preg_replace( '/_+/', '-', __FUNCTION__ ) . '" id="' . preg_replace( '/_+/', '-', __FUNCTION__ ) . '" method="get">';
+		$pmpro_levels_dropdown .= '<select name="this-pmpro-level" id="this-pmpro-level">';
 		$pmpro_levels_dropdown .= '<option value="">All</option>';
 		foreach ( $existing_levels as $key => $value ) {
 			$pmpro_levels_dropdown .= '<option value="' . $value->name . '">Level ' . $value->id . ' => ' . $value->name . '</option>';
@@ -441,7 +441,7 @@ class PMPro_Members_List_Table extends WP_List_Table {
 		$pmpro_levels_dropdown .= '</select>';
 
 		$pmpro_levels_dropdown .= '<input type="hidden" action="' . admin_url( '/admin.php?page=pmpro-memberslisttable' ) . '"/>';
-		$pmpro_levels_dropdown .= '<input type="submit" class="button-secondary"  />';
+		$pmpro_levels_dropdown .= '<input type="submit" id="filter-level-submit" class="button-secondary" value="Filter Levels" />';
 
 		return $pmpro_levels_dropdown;
 	}
@@ -472,7 +472,11 @@ class PMPro_Members_List_Table extends WP_List_Table {
 			echo '<br><b> ' . $this->total_users . ' members queried</b>';
 		}
 		if ( $which == 'bottom' ) {
-			echo '<b> ' . $this->total_users . ' members queried</b>';
+			echo '<b> ' . $this->total_users . ' members queried</b><br>';
+			echo '<pre>';
+			print_r( $this->_args );
+			echo '</pre>';
+			echo '<div id="pmpro-level-return">pmpro-level-return</div>';
 		}
 	}
 

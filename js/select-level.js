@@ -7,7 +7,7 @@ jQuery(document).ready(function($) {
 			data: {
 				'action' : 'select_level_request',
 				'filter' : $('#levels-dropdown').val(),
-				'effpage' : select_level_object.select_page,
+				'thispage' : select_level_object.select_page,
 				'select_level_url' : select_level_object.select_level_ajaxurl,
 				'select_level_nonce' : select_level_object.select_level_nonce,
 			},
