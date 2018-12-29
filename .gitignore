@@ -25,5 +25,4 @@ node_modules
 log/*.log
 log/*.txt
 js/editor.blocks.js
-js/editor.blocks.js
-js/editor.blocks.js
+
