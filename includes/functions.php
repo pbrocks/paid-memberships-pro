@@ -549,7 +549,15 @@ function pmpro_getLevelsExpiration( &$levels ) {
 	 * Filter the levels expiration text. Note the s in levels. Similar to pmpro_levels_expiration_text
 	 */
 	$expiration_text = apply_filters( 'pmpro_levels_expiration_text', $expiration_text, $levels );
-	$expiration_text = apply_filters( 'pmpro_level_expiration_text', $expiration_text, $levels ); // Backwards compatible
+	
+	// Backwards compatible
+	if ( ! empty( $levels ) ) {
+		$first_level = reset($levels);
+	} else {
+		$first_level = false;
+	}
+	$expiration_text = apply_filters( 'pmpro_level_expiration_text', $expiration_text, $first_level );
+	
 	return $expiration_text;
 }
 
@@ -993,6 +1001,11 @@ function pmpro_changeMembershipLevel( $level, $user_id = null, $old_level_status
 		);
 	}
 
+	/**
+	 * Filter the other/old order ids in case we want to exclude some.
+	 * NOTE: As of version 2.0.3, includes/filters.php has code to
+	 * ignore the order for the current checkout.
+	 */
 	$other_order_ids = apply_filters( 'pmpro_other_order_ids_to_cancel', $other_order_ids );
 
 	// cancel any other subscriptions they have (updates pmpro_membership_orders table)
@@ -1726,6 +1739,19 @@ function pmpro_getMembershipLevelForUser( $user_id = null, $force = false ) {
 		if ( empty( $all_membership_levels[ $user_id ] ) ) {
 			$all_membership_levels[ $user_id ] = false;
 		}
+		
+		// Round off prices
+		if ( ! empty( $all_membership_levels[$user_id] ) ) {
+			if ( isset( $all_membership_levels[$user_id]->initial_payment ) ) {
+				$all_membership_levels[$user_id]->initial_payment = pmpro_round_price( $all_membership_levels[$user_id]->initial_payment );
+			}
+			if ( isset( $all_membership_levels[$user_id]->billing_amount ) ) {
+				$all_membership_levels[$user_id]->billing_amount = pmpro_round_price( $all_membership_levels[$user_id]->billing_amount );
+			}
+			if ( isset( $all_membership_levels[$user_id]->trial_amount ) ) {
+				$all_membership_levels[$user_id]->trial_amount = pmpro_round_price( $all_membership_levels[$user_id]->trial_amount );
+			}
+		}
 
 		/**
 		 * pmpro_get_membership_level_for_user filter.
@@ -1791,6 +1817,16 @@ function pmpro_getMembershipLevelsForUser( $user_id = null, $include_inactive = 
 							WHERE mu.user_id = $user_id" . ( $include_inactive ? '' : " AND mu.status = 'active'
 							GROUP BY ID" )
 	);
+	
+	// Round off prices
+	if ( ! empty( $levels ) ) {
+		foreach( $levels as $key => $level ) {
+			$levels[$key]->initial_payment = pmpro_round_price( $level->initial_payment );
+			$levels[$key]->billing_amount = pmpro_round_price( $level->billing_amount );
+			$levels[$key]->trial_amount = pmpro_round_price( $level->trial_amount );
+		}
+	}
+	
 	/**
 	 * pmpro_get_membership_levels_for_user filter.
 	 *
@@ -1863,7 +1899,6 @@ function pmpro_getLevel( $level ) {
 		} else {
 			global $wpdb;
 			$pmpro_levels[ $level_id ] = $wpdb->get_row( "SELECT * FROM $wpdb->pmpro_membership_levels WHERE id = '" . $level_id . "' LIMIT 1" );
-			return $pmpro_levels[ $level_id ];
 		}
 	} else {
 		global $wpdb;
@@ -1875,9 +1910,17 @@ function pmpro_getLevel( $level ) {
 			return false;
 		}
 
-		$pmpro_levels[ $level_id ] = $level_obj;
-		return $pmpro_levels[ $level_id ];
+		$pmpro_levels[ $level_id ] = $level_obj;	
 	}
+	
+	// Round prices
+	if ( ! empty( $pmpro_levels[ $level_id ] ) ) {
+		$pmpro_levels[ $level_id ]->initial_payment = pmpro_round_price( $pmpro_levels[ $level_id ]->initial_payment );
+		$pmpro_levels[ $level_id ]->billing_amount = pmpro_round_price( $pmpro_levels[ $level_id ]->billing_amount );
+		$pmpro_levels[ $level_id ]->trial_amount = pmpro_round_price( $pmpro_levels[ $level_id ]->trial_amount );
+	}
+	
+	return $pmpro_levels[ $level_id ];
 }
 
 /*
@@ -1904,6 +1947,9 @@ function pmpro_getAllLevels( $include_hidden = false, $force = false ) {
 	// lets put them into an array where the key is the id of the level
 	$pmpro_levels = array();
 	foreach ( $raw_levels as $raw_level ) {
+		$raw_level->initial_payment = pmpro_round_price( $raw_level->initial_payment );
+		$raw_level->billing_amount = pmpro_round_price( $raw_level->billing_amount );
+		$raw_level->trial_amount = pmpro_round_price( $raw_level->trial_amount );
 		$pmpro_levels[ $raw_level->id ] = $raw_level;
 	}
 
@@ -2003,12 +2049,12 @@ function pmpro_getCheckoutButton( $level_id, $button_text = null, $classes = nul
 				'!!name!!' => $level->name,
 				'!!description!!' => $level->description,
 				'!!confirmation!!' => $level->confirmation,
-				'!!initial_payment!!' => $level->initial_payment,
-				'!!billing_amount!!' => $level->billing_amount,
+				'!!initial_payment!!' => pmpro_filter_price_for_text_field( $level->initial_payment ),
+				'!!billing_amount!!' => pmpro_filter_price_for_text_field( $level->billing_amount ),
 				'!!cycle_number!!' => $level->cycle_number,
 				'!!cycle_period!!' => $level->cycle_period,
 				'!!billing_limit!!' => $level->billing_limit,
-				'!!trial_amount!!' => $level->trial_amount,
+				'!!trial_amount!!' => pmpro_filter_price_for_text_field( $level->trial_amount ),
 				'!!trial_limit!!' => $level->trial_limit,
 				'!!expiration_number!!' => $level->expiration_number,
 				'!!expiration_period!!' => $level->expiration_period,
@@ -2371,7 +2417,7 @@ function pmpro_is_ready() {
 function pmpro_formatPrice( $price ) {
 	global $pmpro_currency, $pmpro_currency_symbol, $pmpro_currencies;
 
-	// start with the price formatted with two decimals
+	// start with the rounded price
 	$formatted = pmpro_round_price( $price );
 
 	// settings stored in array?
@@ -2391,7 +2437,8 @@ function pmpro_formatPrice( $price ) {
 			$formatted = $formatted . $pmpro_currency_symbol;
 		}
 	} else {
-		$formatted = $pmpro_currency_symbol . $formatted;   // default to symbol on the left
+		// default to symbol on the left, 2 decimals using . and ,
+		$formatted = $pmpro_currency_symbol . number_format( $formatted, 2 );
 	}
 
 	// filter
@@ -2428,16 +2475,64 @@ function pmpro_round_price( $price, $currency = '' ) {
 		$currency = $pmpro_currency;
 	}
 
-	if ( ! empty( $pmpro_currencies[ $currency ] ) && is_array( $pmpro_currencies[ $pmpro_currency ] ) && ! empty( $pmpro_currencies[ $currency ]['decimals'] ) && is_int( $pmpro_currencies[ $currency ]['decimals'] ) ) {
-		$decimals = $pmpro_currencies[ $currency ]['decimals'];
+	if ( ! empty( $pmpro_currencies[ $currency ] )
+		&& is_array( $pmpro_currencies[ $pmpro_currency ] )
+		&& ! empty( $pmpro_currencies[ $currency ]['decimals'] ) ) {
+		$decimals = intval( $pmpro_currencies[ $currency ]['decimals'] );
 	}
 
-	$formatted = number_format( round( (double) $price, $decimals ), $decimals );
+	$rounded = round( (double) $price, $decimals );
+	
 	/**
 	 * Filter for result of pmpro_round_price.
 	 */
-	$formatted = apply_filters( 'pmpro_round_price', $formatted );
-	return $formatted;
+	$rounded = apply_filters( 'pmpro_round_price', $rounded );
+	
+	return $rounded;
+}
+
+/**
+ * Cast to floast and pad zeroes after the decimal
+ * when editing the price on the edit level page.
+ * Only do this for currency with decimals = 2
+ * Only do this if using . as the decimal separator.
+ * Only pad zeroes to the decimal portion if there is exactly one number
+ * after the decimal.
+ *
+ * @since  2.0.2
+ */
+function pmpro_filter_price_for_text_field( $price, $currency = null ) {
+	global $pmpro_currency, $pmpro_currencies;
+
+	// We always want to cast to float
+	$price = floatval( $price );
+
+	// Only do this currencies with 2 decimals
+	if ( ! empty( $pmpro_currency )
+		&& is_array( $pmpro_currencies[$pmpro_currency] )
+		&& isset( $pmpro_currencies[$pmpro_currency]['decimals'] )
+		&& $pmpro_currencies[$pmpro_currency]['decimals'] != 2 ) {
+		return $price;
+	}
+
+	// Only do this if using . as the decimal separator.
+	if ( strpos( $price, '.' ) === false ) {
+		return $price;
+	}
+
+	$parts = explode( '.', (string)$price );
+
+	// If no significant decimals, return the whole number.
+	if ( empty( $parts[1] ) ) {
+		return $price;
+	}
+
+	// Do we need an extra 0?
+	if ( strlen( $parts[1] ) == 1 ) {
+		$price = (string)$price . '0';
+	}
+
+	return $price;
 }
 
 /*

@@ -3,7 +3,7 @@
  * Plugin Name: Paid Memberships Pro
  * Plugin URI: https://www.paidmembershipspro.com
  * Description: The most complete member management and membership subscriptions plugin for WordPress.
- * Version: 2.0
+ * Version: 2.0.4
  * Author: Stranger Studios
  * Author URI: https://www.strangerstudios.com
  * Text Domain: paid-memberships-pro
@@ -16,7 +16,7 @@
  */
 
 // version constant
-define( 'PMPRO_VERSION', '2.0' );
+define( 'PMPRO_VERSION', '2.0.4' );
 define( 'PMPRO_USER_AGENT', 'Paid Memberships Pro v' . PMPRO_VERSION . '; ' . site_url() );
 define( 'PMPRO_MIN_PHP_VERSION', '5.6' );
 
@@ -49,7 +49,11 @@ require_once( PMPRO_DIR . '/includes/filters.php' );                // filters, 
 require_once( PMPRO_DIR . '/includes/reports.php' );                // load reports for admin (reports may also include tracking code, etc)
 require_once( PMPRO_DIR . '/includes/admin.php' );					// admin notices and functionality
 require_once( PMPRO_DIR . '/includes/adminpages.php' );             // dashboard pages
-require_once( PMPRO_DIR . '/blocks/blocks.php' );             		// Gutenberg blocks
+
+if ( version_compare( PHP_VERSION, '5.3.29', '>=' ) ) {
+	require_once( PMPRO_DIR . '/blocks/blocks.php' );             	// Gutenberg blocks
+}
+
 require_once( PMPRO_DIR . '/includes/services.php' );               // services loaded by AJAX and via webhook, etc
 require_once( PMPRO_DIR . '/includes/metaboxes.php' );              // metaboxes for dashboard
 require_once( PMPRO_DIR . '/includes/profile.php' );                // edit user/profile fields

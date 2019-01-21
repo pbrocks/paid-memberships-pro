@@ -9,9 +9,12 @@ add_action( 'admin_enqueue_scripts', 'pmpro_enqueue_admin_pointer_scripts' );
  * @return void
  */
 function pmpro_enqueue_admin_pointer_scripts() {
+	if ( ! current_user_can( 'pmpro_memberships_menu' ) ) {
+		return;
+	}
+	
 	wp_enqueue_style( 'wp-pointer' );
 	wp_enqueue_script( 'wp-pointer' );
-	// hook the pointer
 	add_action( 'admin_print_footer_scripts', 'pmpro_prepare_pointer_scripts' );
 }
 /**
@@ -20,9 +23,7 @@ function pmpro_enqueue_admin_pointer_scripts() {
  * @return void
  */
 function pmpro_prepare_pointer_scripts() {
-	$show_pointer = true;
-	$file_error   = true;
-
+	// Just one pointer for now, but eventually we will have more
 	$id       = '#toplevel_page_pmpro-dashboard';
 	$content  = '<h3>' .  __( 'PMPro v2.0 Update', 'paid-memberships-pro' ) . '</h3>';
 	$content .= '<p>'. sprintf( __( "The Memberships menu has moved. Check out the new dashboard. The Membership Levels and Discount Codes pages can now be found under <a href=\"%s\">Settings</a>.", 'paid-memberships-pro' ) , 'admin.php?page=pmpro-membershiplevels' ). '</p>';
@@ -34,11 +35,13 @@ function pmpro_prepare_pointer_scripts() {
 			'align' => 'left',
 		),
 	);
-	$function = '';
 
-	$dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
-	if ( ! in_array( 'pmpro_v2_tour', $dismissed_pointers ) ) {
-		pmpro_build_pointer_script( $id, $options, __( 'Close', 'paid-memberships-pro' ), $button2, $function );
+	$globally_dismissed_pointers = get_option( 'pmpro_dismissed_wp_pointers', array() );
+	$user_dismissed_pointers = explode( ',', (string) get_user_meta( get_current_user_id(), 'dismissed_wp_pointers', true ) );
+	$dismissed_pointers = array_merge( $globally_dismissed_pointers, $user_dismissed_pointers );
+
+	if ( ! in_array( 'pmpro_v2_menu_moved', $dismissed_pointers ) ) {
+		pmpro_build_pointer_script( $id, $options, __( 'Close', 'paid-memberships-pro' ) );
 	}
 }
 
@@ -72,7 +75,7 @@ function pmpro_build_pointer_script( $id, $options, $button1, $button2 = false, 
 			close: function () {
 				// Post to admin ajax to disable pointers when user clicks "Close"
 				$.post (ajaxurl, {
-					pointer: 'pmpro_v2_tour',
+					pointer: 'pmpro_v2_menu_moved',
 					action: 'dismiss-wp-pointer'
 				});
 			}
@@ -90,7 +93,7 @@ function pmpro_build_pointer_script( $id, $options, $button1, $button2 = false, 
 				jQuery ('#pointer-close').click (function () {
 					// Post to admin ajax to disable pointers when user clicks "Close"
 					$.post (ajaxurl, {
-						pointer: 'pmpro_v2_tour',
+						pointer: 'pmpro_v2_menu_moved',
 						action: 'dismiss-wp-pointer'
 					});
 				})
